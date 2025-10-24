@@ -14,6 +14,7 @@
       background: #1a1a1a;
       color: #fff;
       overflow: hidden;
+      touch-action: none;
     }
 
   
@@ -34,15 +35,19 @@
       background: #2a2a2a;
       padding: 1rem;
       display: flex;
+      flex-direction: column;
       gap: 1rem;
-      align-items: center;
-      border-bottom: 1px solid #3a3a3a;
+      align-items: stretch;
+      width: 200px;
+      flex-shrink: 0;
+      border-radius: 0.5rem;
     }
 
     .tool-group {
       display: flex;
+      flex-direction: column;
       gap: 0.5rem;
-      align-items: center;
+      align-items: stretch;
       padding: 0.5rem;
       background: #333;
       border-radius: 0.5rem;
@@ -68,21 +73,26 @@
 
     .tool-button.active {
       background: #4a90e2;
+      transform: scale(1.05);
+      box-shadow: 0 2px 4px rgba(74, 144, 226, 0.3);
     }
 
     .main-content {
-      display: flex;
       height: 100%;
+      display: flex;
+      flex-direction: row;
+      gap: 1rem;
+      padding: 1rem;
+      background: #222;
+      position: relative;
     }
 
     .canvas-area {
-      flex: 1;
-      padding: 1rem;
       display: flex;
       align-items: center;
       justify-content: center;
-      background: #222;
-      position: relative;
+      flex: 1;
+      width: 100%;
     }
 
     .canvas-container {
@@ -104,28 +114,28 @@
       pointer-events: none;
     }
 
-    .layers-panel {
-      width: 250px;
+    .layers-section {
       background: #2a2a2a;
-      border-left: 1px solid #3a3a3a;
+      border-top: 1px solid #3a3a3a;
       padding: 1rem;
       display: flex;
       flex-direction: column;
+      gap: 0.5rem;
     }
 
     .layers-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 1rem;
+      margin-bottom: 0.5rem;
     }
 
     .layer-list {
-      flex: 1;
       display: flex;
       flex-direction: column;
       gap: 0.5rem;
       overflow-y: auto;
+      max-height: 150px;
     }
 
     .layer-item {
@@ -200,25 +210,29 @@
       border-radius: 0.25rem;
       margin-bottom: 1rem;
       cursor: pointer;
+      box-shadow: inset 0 1px 3px rgba(0,0,0,0.3);
     }
 
     .timeline-progress {
       position: absolute;
       height: 100%;
-      background: #4a90e2;
+      background: linear-gradient(90deg, #4a90e2, #5ba0f2);
       border-radius: 0.25rem;
       pointer-events: none;
+      box-shadow: 0 0 8px rgba(74, 144, 226, 0.4);
     }
 
     .timeline-handle {
       position: absolute;
       top: -4px;
-      width: 8px;
+      width: 12px;
       height: 32px;
-      background: #fff;
-      border-radius: 4px;
+      background: linear-gradient(180deg, #fff, #f0f0f0);
+      border-radius: 6px;
       transform: translateX(-50%);
       cursor: grab;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+      border: 2px solid #4a90e2;
     }
 
     .timeline-handle:active {
@@ -250,7 +264,9 @@
     }
 
     .frame.active {
-      outline: 2px solid #4a90e2;
+      outline: 3px solid #4a90e2;
+      box-shadow: 0 0 12px rgba(74, 144, 226, 0.5);
+      transform: scale(1.02);
     }
 
     .frame-preview {
@@ -337,6 +353,8 @@
 
     .btn:hover {
       background: #357abd;
+      transform: translateY(-1px);
+      box-shadow: 0 2px 8px rgba(74, 144, 226, 0.4);
     }
 
     .brush-settings {
@@ -385,89 +403,229 @@
     .context-menu button:hover {
       background: #444;
     }
+
+    .nav-bar {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: #333;
+      color: #fff;
+      text-align: center;
+      padding: 0.5rem;
+      font-size: 1rem;
+      border-radius: 0 0 0.5rem 0.5rem;
+    }
+
+    /* Touch-friendly improvements */
+    .tool-button, .btn, .layer-visibility {
+      min-height: 44px;
+      min-width: 44px;
+    }
+    .timeline-handle {
+      min-width: 44px;
+      min-height: 44px;
+    }
+    .frame {
+      min-width: 44px;
+      min-height: 44px;
+    }
+    .layer-item {
+      min-height: 44px;
+    }
+    .timeline-scrubber {
+      min-height: 44px;
+    }
   </style>
 </head>
 <body>
   <div class="page-wrapper">
     <div class="editor">
-    <div class="toolbar">
-      <div class="tool-group">
-        <button class="tool-button active" data-tool="brush" title="Brush">🖌️</button>
-        <button class="tool-button" data-tool="eraser" title="Eraser">⚪</button>
-        <button class="tool-button" data-tool="fill" title="Fill">🪣</button>
-        <button class="tool-button" data-tool="select" title="Rectangle Select">⬚</button>
-        <button class="tool-button" data-tool="lasso" title="Lasso Select">✂️</button>
-        <button class="tool-button" data-tool="move" title="Move">✋</button>
-      </div>
-
-      <div class="tool-group">
-        <input type="color" id="colorPicker" value="#000000" title="Color">
-        <input type="range" id="sizeSlider" min="1" max="50" value="5" title="Size">
-        <span id="sizeValue">5px</span>
-      </div>
-
-      <div class="tool-group">
-        <label>
-          <input type="checkbox" id="onionSkin"> Onion Skin
-        </label>
-        <input type="number" id="fps" value="12" min="1" max="60" title="FPS">
-        <span>FPS</span>
-      </div>
-
-      <div class="tool-group">
-        <button class="btn" id="copy" disabled>Copy</button>
-        <button class="btn" id="paste" disabled>Paste</button>
-      </div>
-    </div>
-
     <div class="main-content">
-      <div class="canvas-area">
-        <div class="canvas-container">
-          <canvas id="canvas"></canvas>
-          <canvas id="selectionCanvas"></canvas>
-        </div>
-        <div class="dropzone">Drop images here</div>
-        <div class="brush-settings" style="display: none;">
-          <label>
-            Smoothing
-            <input type="range" id="smoothing" min="0" max="1" step="0.1" value="0.5">
-          </label>
-          <label>
-            Pressure
-            <input type="checkbox" id="pressureEnabled" checked>
-          </label>
-        </div>
-      </div>
+        <div class="toolbar">
+          <div class="tool-group">
+            <button class="tool-button active" data-tool="brush" title="Brush">🖌️</button>
+            <button class="tool-button" data-tool="eraser" title="Eraser">⚪</button>
+            <button class="tool-button" data-tool="fill" title="Fill">🪣</button>
+            <button class="tool-button" data-tool="select" title="Rectangle Select">⬚</button>
+            <button class="tool-button" data-tool="lasso" title="Lasso Select">✂️</button>
+            <button class="tool-button" data-tool="move" title="Move">✋</button>
+          </div>
 
-      <div class="layers-panel">
-        <div class="layers-header">
-          <h3>Layers</h3>
-          <button class="btn" id="addLayer">+ Layer</button>
+          <div class="tool-group">
+            <input type="color" id="colorPicker" value="#000000" title="Color">
+            <input type="range" id="sizeSlider" min="1" max="50" value="5" title="Size">
+            <span id="sizeValue">5px</span>
+          </div>
+
+          <div class="tool-group">
+            <label>
+              <input type="checkbox" id="onionSkin"> Onion Skin
+            </label>
+            <input type="number" id="fps" value="12" min="1" max="60" title="FPS">
+            <span>FPS</span>
+          </div>
+
+          <div class="tool-group">
+            <button class="btn" id="undo">Undo</button>
+            <button class="btn" id="copy" disabled>Copy</button>
+            <button class="btn" id="paste" disabled>Paste</button>
+          </div>
         </div>
-        <div class="layer-list" id="layerList"></div>
-      </div>
-    </div>
+        <div class="canvas-area">
+         <div class="canvas-container">
+           <canvas id="canvas"></canvas>
+           <canvas id="selectionCanvas"></canvas>
+           <div class="nav-bar">NavStudio</div>
+         </div>
+         <div class="dropzone">Drop images here</div>
+         <div class="brush-settings" style="display: none;">
+           <label>
+             Smoothing
+             <input type="range" id="smoothing" min="0" max="1" step="0.1" value="0.5">
+           </label>
+           <label>
+             Pressure
+             <input type="checkbox" id="pressureEnabled" checked>
+           </label>
+         </div>
+       </div>
+     </div>
 
     <div class="timeline">
-      <div class="timeline-controls">
-        <button class="btn" id="playPause">▶️ Play</button>
-        <button class="btn" id="addFrame">+ Frame</button>
-        <button class="btn" id="duplicateFrame">Copy</button>
-        <button class="btn" id="deleteFrame">Delete</button>
-        <input type="file" id="importImages" accept="image/*" multiple style="display: none">
-        <button class="btn" onclick="document.getElementById('importImages').click()">Import</button>
-        <button class="btn" id="exportGif">Export GIF</button>
-      </div>
-      <div class="timeline-scrubber">
-        <div class="timeline-progress"></div>
-        <div class="timeline-handle"></div>
-      </div>
-      <div class="frames-container" id="framesContainer"></div>
-    </div>
+       <div class="timeline-controls">
+         <button class="btn" id="playPause">▶️ Play</button>
+         <button class="btn" id="videoPlayback" style="display: none;">🎥 Play Video</button>
+         <button class="btn" id="addFrame">+ Frame</button>
+         <button class="btn" id="duplicateFrame">Duplicate</button>
+         <button class="btn" id="deleteFrame">Delete</button>
+         <input type="file" id="importImages" accept="image/*" multiple style="display: none">
+         <button class="btn" onclick="document.getElementById('importImages').click()">Import</button>
+         <button class="btn" id="exportGif">Export PNG (First Frame)</button>
+         <button class="btn" id="exportVideo">🎥 Export Video</button>
+         <button class="btn" id="exportFrames">📦 Export Frames (ZIP)</button>
+       </div>
+       <div class="timeline-scrubber">
+         <div class="timeline-progress"></div>
+         <div class="timeline-handle"></div>
+       </div>
+       <div class="layers-section">
+         <div class="layers-header">
+           <h3>Layers</h3>
+           <button class="btn" id="addLayer">+ Layer</button>
+         </div>
+         <div class="layer-list" id="layerList"></div>
+       </div>
+       <div class="frames-container" id="framesContainer"></div>
+     </div>
     </div>
   </div>
-
+<h1 style="background-color: white; color: black;">NavStudio</h1>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gif.js/0.2.0/gif.js"></script>
+  <script src="https://unpkg.com/@ffmpeg/ffmpeg@0.12.6/dist/ffmpeg.min.js"></script>
+  <script src="https://unpkg.com/@ffmpeg/util@0.12.1/dist/umd/index.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/webm-writer@1.0.0/dist/webm-writer.min.js"></script>
+  <script>
+    // Alternative video export using MediaRecorder API
+    class VideoExporter {
+      constructor() {
+        this.mediaRecorder = null;
+        this.recordedChunks = [];
+      }
+
+      async exportAnimation(frames, fps, canvas) {
+        return new Promise(async (resolve, reject) => {
+          try {
+            // Create a temporary canvas for recording
+            const recordCanvas = document.createElement('canvas');
+            recordCanvas.width = canvas.width;
+            recordCanvas.height = canvas.height;
+            const recordCtx = recordCanvas.getContext('2d');
+
+            // Create a video stream from the canvas
+            const stream = recordCanvas.captureStream(fps);
+
+            // Try different codecs in order of preference
+            let options = { mimeType: 'video/webm;codecs=vp9' };
+            if (!MediaRecorder.isTypeSupported(options.mimeType)) {
+              options = { mimeType: 'video/webm;codecs=vp8' };
+              if (!MediaRecorder.isTypeSupported(options.mimeType)) {
+                options = { mimeType: 'video/webm' };
+                if (!MediaRecorder.isTypeSupported(options.mimeType)) {
+                  throw new Error('WebM recording not supported');
+                }
+              }
+            }
+
+            this.mediaRecorder = new MediaRecorder(stream, options);
+
+            this.recordedChunks = [];
+
+            this.mediaRecorder.ondataavailable = (event) => {
+              if (event.data.size > 0) {
+                this.recordedChunks.push(event.data);
+              }
+            };
+
+            this.mediaRecorder.onstop = () => {
+              const blob = new Blob(this.recordedChunks, { type: 'video/webm' });
+              resolve(blob);
+            };
+
+            // Start recording
+            this.mediaRecorder.start();
+
+            // Draw each frame with proper timing
+            for (let i = 0; i < frames.length; i++) {
+              // Clear canvas with transparent background (not white, preserve original colors)
+              recordCtx.clearRect(0, 0, recordCanvas.width, recordCanvas.height);
+
+              // Create temporary canvas with frame data
+              const tempCanvas = document.createElement('canvas');
+              tempCanvas.width = recordCanvas.width;
+              tempCanvas.height = recordCanvas.height;
+              const tempCtx = tempCanvas.getContext('2d');
+              // Fill with white background first, then draw frame data
+              tempCtx.fillStyle = '#FFFFFF';
+              tempCtx.fillRect(0, 0, recordCanvas.width, recordCanvas.height);
+
+              // Draw frame data with proper color representation
+              const frameImageData = new ImageData(
+                new Uint8ClampedArray(frames[i].data.data),
+                frames[i].data.width,
+                frames[i].data.height
+              );
+              recordCtx.putImageData(frameImageData, 0, 0);
+
+              // Draw the frame to recording canvas
+              recordCtx.drawImage(tempCanvas, 0, 0);
+
+              // Request animation frame to ensure proper rendering
+              await new Promise(resolve => requestAnimationFrame(resolve));
+
+              // Wait for the frame duration
+              const frameDuration = 1000 / fps;
+              await new Promise(resolve => setTimeout(resolve, frameDuration));
+            }
+
+            // Add a short delay to ensure last frame is recorded
+            await new Promise(resolve => setTimeout(resolve, 200));
+
+            // Stop recording
+            this.mediaRecorder.stop();
+
+          } catch (error) {
+            reject(error);
+          }
+        });
+      }
+    }
+
+    // Make VideoExporter globally available
+    window.VideoExporter = VideoExporter;
+  </script>
 
 
   
@@ -476,10 +634,11 @@
     
     class AnimationEditor {
       constructor() {
+        console.log('AnimationEditor constructor started');
         this.canvas = document.getElementById('canvas');
         this.selectionCanvas = document.getElementById('selectionCanvas');
-        this.ctx = this.canvas.getContext('2d');
-        this.selectionCtx = this.selectionCanvas.getContext('2d');
+        this.ctx = this.canvas.getContext('2d', { willReadFrequently: true });
+        this.selectionCtx = this.selectionCanvas.getContext('2d', { willReadFrequently: true });
         
         this.isDrawing = false;
         this.layers = [];
@@ -500,13 +659,21 @@
         this.selection = null;
         this.clipboard = null;
         this.isDragging = false;
+        this.dragOffset = null;
         this.lastPoint = null;
         this.lassoPoints = [];
+
+        // FFmpeg initialization
+        this.ffmpeg = null;
+        this.isFFmpegLoaded = false;
+        this.videoElement = null;
 
         this.initCanvas();
         this.initEvents();
         this.createInitialLayer();
         this.updateUI();
+        this.initFFmpeg();
+        console.log('AnimationEditor initialized');
       }
 
       initCanvas() {
@@ -514,8 +681,16 @@
         this.canvas.height = 600;
         this.selectionCanvas.width = 800;
         this.selectionCanvas.height = 600;
+
+        // Set canvas to use proper color space and high quality
+        this.ctx.imageSmoothingEnabled = true;
+        this.ctx.imageSmoothingQuality = 'high';
         this.ctx.lineCap = 'round';
         this.ctx.lineJoin = 'round';
+
+        // Fill canvas with white background initially
+        this.ctx.fillStyle = '#FFFFFF';
+        this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
       }
 
       createInitialLayer() {
@@ -536,18 +711,75 @@
       }
 
       createFrame() {
-        return {
-          id: Date.now().toString(),
-          data: new ImageData(this.canvas.width, this.canvas.height),
-          duration: 1000 / this.fps
-        };
+         // Create frame with white background data
+         const imageData = this.ctx.createImageData(this.canvas.width, this.canvas.height);
+         // Fill with white (all pixels set to white with full alpha)
+         for (let i = 0; i < imageData.data.length; i += 4) {
+           imageData.data[i] = 255;     // Red
+           imageData.data[i + 1] = 255; // Green
+           imageData.data[i + 2] = 255; // Blue
+           imageData.data[i + 3] = 255; // Alpha
+         }
+
+         return {
+           id: Date.now().toString(),
+           data: imageData,
+           duration: 1000 / this.fps,
+           history: []
+         };
+       }
+
+      saveState() {
+        const layer = this.layers[this.currentLayer];
+        const frame = layer.frames[this.currentFrame];
+        const nonWhitePixels = this.countNonWhitePixels(frame.data);
+        console.log('Saving state for layer:', this.currentLayer, 'frame:', this.currentFrame, 'history length before:', frame.history.length, 'non-white pixels:', nonWhitePixels);
+        const dataURL = this.canvas.toDataURL('image/png');
+        frame.history.push(dataURL);
+        console.log('After save, history length:', frame.history.length, 'state saved as dataURL');
+        this.updateUndoButton();
+      }
+
+      undo() {
+        const layer = this.layers[this.currentLayer];
+        const frame = layer.frames[this.currentFrame];
+        console.log('Undo called for layer:', this.currentLayer, 'frame:', this.currentFrame, 'history length:', frame.history.length);
+        if (frame.history.length > 0) {
+          const dataURL = frame.history.pop();
+          console.log('Restoring from dataURL, length:', dataURL.length);
+          const img = new Image();
+          img.onload = () => {
+            this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+            this.ctx.drawImage(img, 0, 0);
+            // Update frame.data
+            frame.data = this.ctx.getImageData(0, 0, this.canvas.width, this.canvas.height);
+            const nonWhitePixels = this.countNonWhitePixels(frame.data);
+            console.log('Undid, history length now:', frame.history.length, 'restored non-white pixels:', nonWhitePixels);
+            this.loadFrame(this.currentFrame);
+            this.updateUndoButton();
+          };
+          img.src = dataURL;
+        } else {
+          console.log('No history to undo');
+        }
       }
 
       startDrawing(e) {
+        console.log('startDrawing called, tool:', this.currentTool, 'isDrawing:', this.isDrawing, 'event type:', e.type, 'touches:', e.touches ? e.touches.length : 'none');
         this.isDrawing = true;
+        if (e.touches) {
+          e.clientX = e.touches[0].clientX;
+          e.clientY = e.touches[0].clientY;
+          e.pressure = e.touches[0].force || 1;
+          console.log('Touch start: clientX:', e.clientX, 'clientY:', e.clientY, 'force:', e.pressure);
+        } else {
+          console.log('Mouse start: clientX:', e.clientX, 'clientY:', e.clientY);
+        }
         const pos = this.getMousePos(e);
-        
+        console.log('Start position: x:', pos.x, 'y:', pos.y);
+
         if (this.currentTool === 'brush' || this.currentTool === 'eraser') {
+          this.saveState();
           this.points = [];
           this.addPoint(pos.x, pos.y, e.pressure || 1);
         } else if (this.currentTool === 'select') {
@@ -562,8 +794,17 @@
           this.drawLassoSelection();
         } else if (this.currentTool === 'fill') {
           this.floodFill(pos.x, pos.y);
+        } else if (this.currentTool === 'move') {
+          // Check if clicking on existing selection
+          if (this.selection && this.isPointInSelection(pos)) {
+            this.isDragging = true;
+            this.dragOffset = {
+              x: pos.x - this.selection.x,
+              y: pos.y - this.selection.y
+            };
+          }
         }
-        
+
         this.lastPoint = pos;
       }
 
@@ -594,17 +835,36 @@
       }
 
       floodFill(x, y) {
+        // Convert coordinates to integers
+        x = Math.floor(x);
+        y = Math.floor(y);
+
+        // Check bounds
+        if (x < 0 || x >= this.canvas.width || y < 0 || y >= this.canvas.height) {
+          return;
+        }
+
         const imageData = this.ctx.getImageData(0, 0, this.canvas.width, this.canvas.height);
         const pixels = imageData.data;
         const startPos = (y * this.canvas.width + x) * 4;
+
+        // Get the color we're trying to fill
         const startR = pixels[startPos];
         const startG = pixels[startPos + 1];
         const startB = pixels[startPos + 2];
         const startA = pixels[startPos + 3];
 
+        // Get the fill color
         const fillR = parseInt(this.color.substr(1, 2), 16);
         const fillG = parseInt(this.color.substr(3, 2), 16);
         const fillB = parseInt(this.color.substr(5, 2), 16);
+
+        this.saveState();
+
+        // Don't fill if the target color is the same as fill color
+        if (startR === fillR && startG === fillG && startB === fillB) {
+          return;
+        }
 
         const stack = [[x, y]];
         const seen = new Set();
@@ -640,8 +900,18 @@
 
       draw(e) {
         if (!this.isDrawing) return;
+        console.log('draw called, event type:', e.type, 'touches:', e.touches ? e.touches.length : 'none');
+        if (e.touches) {
+          e.clientX = e.touches[0].clientX;
+          e.clientY = e.touches[0].clientY;
+          e.pressure = e.touches[0].force || 1;
+          console.log('Touch move: clientX:', e.clientX, 'clientY:', e.clientY, 'force:', e.pressure);
+        } else {
+          console.log('Mouse move: clientX:', e.clientX, 'clientY:', e.clientY);
+        }
         const pos = this.getMousePos(e);
-        
+        console.log('Draw position: x:', pos.x, 'y:', pos.y, 'tool:', this.currentTool);
+
         if (this.currentTool === 'brush' || this.currentTool === 'eraser') {
           this.addPoint(pos.x, pos.y, e.pressure || 1);
         } else if (this.currentTool === 'select') {
@@ -649,23 +919,32 @@
         } else if (this.currentTool === 'lasso') {
           this.lassoPoints.push(pos);
           this.drawLassoSelection();
-        } else if (this.currentTool === 'move' && this.selection) {
-          const dx = pos.x - this.lastPoint.x;
-          const dy = pos.y - this.lastPoint.y;
-          this.moveSelection(dx, dy);
-        }
-        
+        } else if (this.currentTool === 'move' && this.isDragging && this.selection) {
+           // Move the selection while dragging
+           this.selection.x = pos.x - this.dragOffset.x;
+           this.selection.y = pos.y - this.dragOffset.y;
+           this.drawSelection();
+         }
+
         this.lastPoint = pos;
       }
 
       stopDrawing() {
         if (!this.isDrawing) return;
         this.isDrawing = false;
-        
+
         if (this.currentTool === 'brush' || this.currentTool === 'eraser') {
           this.saveCurrentFrame();
         } else if (this.currentTool === 'select' || this.currentTool === 'lasso') {
           this.finalizeSelection();
+        } else if (this.currentTool === 'move') {
+          this.isDragging = false;
+          // When finished moving, paste the content and clear selection
+          if (this.clipboard) {
+            this.paste();
+            this.selectionCtx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+            this.selection = null;
+          }
         }
       }
 
@@ -704,107 +983,183 @@
       }
 
       finalizeSelection() {
-        if (this.currentTool === 'select') {
-          const x = Math.min(this.selection.startX, this.selection.startX + this.selection.width);
-          const y = Math.min(this.selection.startY, this.selection.startY + this.selection.height);
-          const w = Math.abs(this.selection.width);
-          const h = Math.abs(this.selection.height);
-          
-          this.selection = { x, y, width: w, height: h };
-        } else if (this.currentTool === 'lasso') {
-          // Create bounding box for lasso selection
-          const xs = this.lassoPoints.map(p => p.x);
-          const ys = this.lassoPoints.map(p => p.y);
-          const x = Math.min(...xs);
-          const y = Math.min(...ys);
-          const width = Math.max(...xs) - x;
-          const height = Math.max(...ys) - y;
-          
-          this.selection = { x, y, width, height, path: this.lassoPoints };
+          if (this.currentTool === 'select') {
+            const x = Math.min(this.selection.startX, this.selection.startX + this.selection.width);
+            const y = Math.min(this.selection.startY, this.selection.startY + this.selection.height);
+            const w = Math.abs(this.selection.width);
+            const h = Math.abs(this.selection.height);
+
+            this.selection = { x, y, width: w, height: h };
+            // Enable copy button and automatically copy selection
+            document.getElementById('copy').disabled = false;
+            this.copy();
+          } else if (this.currentTool === 'lasso') {
+            // Create bounding box for lasso selection
+            const xs = this.lassoPoints.map(p => p.x);
+            const ys = this.lassoPoints.map(p => p.y);
+            const x = Math.min(...xs);
+            const y = Math.min(...ys);
+            const width = Math.max(...xs) - x;
+            const height = Math.max(...ys) - y;
+
+            this.selection = { x, y, width, height, path: this.lassoPoints };
+            // Enable copy button
+            document.getElementById('copy').disabled = false;
+            // If clipboard has content, paste at center of lasso path
+            if (this.clipboard) {
+              this.paste();
+            } else {
+              // Otherwise, copy the selection
+              this.copy();
+            }
+          }
         }
-        
-        document.getElementById('copy').disabled = false;
-      }
 
       moveSelection(dx, dy) {
         if (!this.selection) return;
-        
+
         this.selection.x += dx;
         this.selection.y += dy;
         this.drawSelection();
       }
 
-      copy() {
-        if (!this.selection) return;
-        
-        const tempCanvas = document.createElement('canvas');
-        tempCanvas.width = this.selection.width;
-        tempCanvas.height = this.selection.height;
-        const tempCtx = tempCanvas.getContext('2d');
-        
-        if (this.selection.path) {
-          // Lasso selection
-          tempCtx.beginPath();
-          tempCtx.moveTo(
-            this.selection.path[0].x - this.selection.x,
-            this.selection.path[0].y - this.selection.y
-          );
-          
-          for (let i = 1; i < this.selection.path.length; i++) {
-            tempCtx.lineTo(
-              this.selection.path[i].x - this.selection.x,
-              this.selection.path[i].y - this.selection.y
-            );
-          }
-          
-          tempCtx.closePath();
-          tempCtx.clip();
-        }
-        
-        tempCtx.drawImage(
-          this.canvas,
-          this.selection.x,
-          this.selection.y,
-          this.selection.width,
-          this.selection.height,
-          0,
-          0,
-          this.selection.width,
-          this.selection.height
-        );
-        
-        this.clipboard = {
-          image: tempCanvas,
-          width: this.selection.width,
-          height: this.selection.height
-        };
-        
-        document.getElementById('paste').disabled = false;
+      isPointInSelection(pos) {
+        if (!this.selection) return false;
+
+        return pos.x >= this.selection.x &&
+               pos.x <= this.selection.x + this.selection.width &&
+               pos.y >= this.selection.y &&
+               pos.y <= this.selection.y + this.selection.height;
       }
 
+      copy() {
+          console.log('copy() called, selection:', this.selection);
+          if (!this.selection) return;
+
+          const tempCanvas = document.createElement('canvas');
+          tempCanvas.width = this.selection.width;
+          tempCanvas.height = this.selection.height;
+          const tempCtx = tempCanvas.getContext('2d');
+
+          // Fill with transparent background first
+          tempCtx.clearRect(0, 0, tempCanvas.width, tempCanvas.height);
+
+          if (this.selection.path) {
+            // Lasso selection - create clipping path
+            tempCtx.beginPath();
+            tempCtx.moveTo(
+              this.selection.path[0].x - this.selection.x,
+              this.selection.path[0].y - this.selection.y
+            );
+
+            for (let i = 1; i < this.selection.path.length; i++) {
+              tempCtx.lineTo(
+                this.selection.path[i].x - this.selection.x,
+                this.selection.path[i].y - this.selection.y
+              );
+            }
+
+            tempCtx.closePath();
+            tempCtx.clip();
+          }
+
+          // Draw the selected portion of the canvas
+          tempCtx.drawImage(
+            this.canvas,
+            this.selection.x,
+            this.selection.y,
+            this.selection.width,
+            this.selection.height,
+            0,
+            0,
+            this.selection.width,
+            this.selection.height
+          );
+
+          this.clipboard = {
+            image: tempCanvas,
+            width: this.selection.width,
+            height: this.selection.height,
+            hasPath: !!this.selection.path
+          };
+
+          document.getElementById('paste').disabled = false;
+          console.log('Copied selection:', this.selection, 'clipboard created');
+        }
+
       paste() {
-        if (!this.clipboard) return;
-        
-        this.ctx.drawImage(
-          this.clipboard.image,
-          this.lastPoint ? this.lastPoint.x : 0,
-          this.lastPoint ? this.lastPoint.y : 0
-        );
-        
-        this.saveCurrentFrame();
-      }
+          console.log('paste() called, clipboard:', this.clipboard);
+          if (!this.clipboard) {
+            alert('Nothing to paste. Copy a selection first.');
+            return;
+          }
+
+          // Determine paste position
+          let pasteX, pasteY;
+          if (this.selection && this.selection.path) {
+            // Calculate centroid of lasso path
+            const points = this.selection.path;
+            const sumX = points.reduce((sum, p) => sum + p.x, 0);
+            const sumY = points.reduce((sum, p) => sum + p.y, 0);
+            const centroidX = sumX / points.length;
+            const centroidY = sumY / points.length;
+            pasteX = centroidX - this.clipboard.width / 2;
+            pasteY = centroidY - this.clipboard.height / 2;
+          } else {
+            // Paste at current mouse position or center of canvas
+            pasteX = this.lastPoint ? this.lastPoint.x - this.clipboard.width / 2 : this.canvas.width / 2 - this.clipboard.width / 2;
+            pasteY = this.lastPoint ? this.lastPoint.y - this.clipboard.height / 2 : this.canvas.height / 2 - this.clipboard.height / 2;
+          }
+
+          console.log('Pasting at:', pasteX, pasteY, 'clipboard size:', this.clipboard.width, this.clipboard.height);
+
+          this.saveState();
+          this.ctx.drawImage(
+            this.clipboard.image,
+            pasteX,
+            pasteY
+          );
+
+          console.log('drawImage called, now saving frame');
+          this.saveCurrentFrame();
+          console.log('Pasted at:', pasteX, pasteY, 'frame saved');
+          // Ensure the frame is redrawn after paste
+          this.loadFrame(this.currentFrame);
+        }
 
       getMousePos(e) {
         const rect = this.canvas.getBoundingClientRect();
-        return {
-          x: (e.clientX - rect.left) * (this.canvas.width / rect.width),
-          y: (e.clientY - rect.top) * (this.canvas.height / rect.height)
+        let clientX, clientY;
+        let isTouch = false;
+        if (e.touches) {
+          isTouch = true;
+          clientX = e.touches[0].clientX;
+          clientY = e.touches[0].clientY;
+        } else {
+          clientX = e.clientX;
+          clientY = e.clientY;
+        }
+        const pos = {
+          x: (clientX - rect.left) * (this.canvas.width / rect.width),
+          y: (clientY - rect.top) * (this.canvas.height / rect.height)
         };
+        console.log(`getMousePos: ${isTouch ? 'Touch' : 'Mouse'}, clientX: ${clientX}, clientY: ${clientY}, rect left: ${rect.left}, top: ${rect.top}, calculated x: ${pos.x}, y: ${pos.y}`);
+        return pos;
       }
 
       addFrame() {
+        // Save current frame first
+        this.saveCurrentFrame();
+
         const layer = this.layers[this.currentLayer];
-        layer.frames.push(this.createFrame());
+        // Create new frame with current canvas content (continues from current frame)
+        const newFrame = {
+          id: Date.now().toString(),
+          data: this.ctx.getImageData(0, 0, this.canvas.width, this.canvas.height),
+          duration: 1000 / this.fps,
+          history: []
+        };
+        layer.frames.push(newFrame);
         this.currentFrame = layer.frames.length - 1;
         this.updateUI();
       }
@@ -819,7 +1174,8 @@
             frame.data.width,
             frame.data.height
           ),
-          duration: frame.duration
+          duration: frame.duration,
+          history: [...frame.history]
         };
         layer.frames.splice(this.currentFrame + 1, 0, newFrame);
         this.currentFrame++;
@@ -835,41 +1191,82 @@
       }
 
       saveCurrentFrame() {
+        console.log('saveCurrentFrame() called for layer:', this.currentLayer, 'frame:', this.currentFrame);
         const layer = this.layers[this.currentLayer];
         layer.frames[this.currentFrame].data = this.ctx.getImageData(
           0, 0, this.canvas.width, this.canvas.height
         );
+        console.log('Frame data updated, imageData length:', layer.frames[this.currentFrame].data.data.length);
         this.updateFramePreview(this.currentFrame);
       }
 
       loadFrame(frameIndex) {
-        this.saveCurrentFrame();
-        this.currentFrame = frameIndex;
-        this.clearCanvas();
-        
-        // Draw all visible layers
-        this.layers.forEach((layer, i) => {
-          if (!layer.visible) return;
-          
-          this.ctx.globalAlpha = layer.opacity;
-          
-          if (this.onionSkin && frameIndex > 0 && i === this.currentLayer) {
-            this.ctx.globalAlpha = 0.3;
-            this.ctx.putImageData(
-              layer.frames[frameIndex - 1].data,
-              0, 0
-            );
+          console.log('loadFrame called, onionSkin:', this.onionSkin, 'currentFrame:', frameIndex, 'currentLayer:', this.currentLayer, 'layers count:', this.layers.length);
+          this.currentFrame = frameIndex;
+          this.clearCanvas();
+
+          // Draw all visible layers
+          const visibleLayers = this.layers.filter(layer => layer.visible);
+          console.log(`Number of visible layers: ${visibleLayers.length}`);
+          visibleLayers.forEach((layer, i) => {
+            console.log(`Rendering layer ${this.layers.indexOf(layer)} (order ${i}) with opacity ${layer.opacity}`);
+            // Create a temporary canvas for this layer
+            const tempCanvas = document.createElement('canvas');
+            tempCanvas.width = this.canvas.width;
+            tempCanvas.height = this.canvas.height;
+            const tempCtx = tempCanvas.getContext('2d');
+            const layerIndex = this.layers.indexOf(layer);
+            const nonWhitePixels = this.countNonWhitePixels(layer.frames[frameIndex].data);
+            console.log(`Putting image data for layer ${layerIndex}, non-white pixels: ${nonWhitePixels}`);
+            tempCtx.putImageData(layer.frames[frameIndex].data, 0, 0);
+
+            // Draw to main canvas with opacity
             this.ctx.globalAlpha = layer.opacity;
+            this.ctx.drawImage(tempCanvas, 0, 0);
+            this.ctx.globalAlpha = 1; // Reset
+            if (layerIndex === this.currentLayer) {
+              console.log('Drawn current layer, imageData non-white pixels:', nonWhitePixels);
+            }
+          });
+
+        // Draw onion skin for current layer on top
+        if (this.onionSkin && this.layers[this.currentLayer] && this.layers[this.currentLayer].visible) {
+          const layer = this.layers[this.currentLayer];
+
+          // Draw previous frame onion
+          if (frameIndex > 0) {
+            console.log('Drawing onion skin for layer', this.currentLayer, 'previous frame', frameIndex - 1);
+            const tempCanvas = document.createElement('canvas');
+            tempCanvas.width = this.canvas.width;
+            tempCanvas.height = this.canvas.height;
+            const tempCtx = tempCanvas.getContext('2d');
+            tempCtx.putImageData(layer.frames[frameIndex - 1].data, 0, 0);
+            this.ctx.globalAlpha = 0.3;
+            this.ctx.drawImage(tempCanvas, 0, 0);
+            this.ctx.globalAlpha = 1;
+            console.log('Previous onion drawn with 30% alpha');
           }
-          
-          this.ctx.putImageData(layer.frames[frameIndex].data, 0, 0);
-        });
+          // Draw next frame onion
+          if (frameIndex < layer.frames.length - 1) {
+            console.log('Drawing onion skin for layer', this.currentLayer, 'next frame', frameIndex + 1);
+            const tempCanvas = document.createElement('canvas');
+            tempCanvas.width = this.canvas.width;
+            tempCanvas.height = this.canvas.height;
+            const tempCtx = tempCanvas.getContext('2d');
+            tempCtx.putImageData(layer.frames[frameIndex + 1].data, 0, 0);
+            this.ctx.globalAlpha = 0.2; // Slightly less opacity for next
+            this.ctx.drawImage(tempCanvas, 0, 0);
+            this.ctx.globalAlpha = 1;
+            console.log('Next onion drawn with 20% alpha');
+          }
+        }
         
         this.ctx.globalAlpha = 1;
         this.updateUI();
       }
 
       clearCanvas() {
+        // Clear with white background to maintain consistency
         this.ctx.fillStyle = '#FFFFFF';
         this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
       }
@@ -879,10 +1276,24 @@
           `.frame[data-index="${frameIndex}"] .frame-preview`
         );
         if (!frame) return;
-        
+
         const ctx = frame.getContext('2d');
         ctx.clearRect(0, 0, frame.width, frame.height);
-        ctx.drawImage(this.canvas, 0, 0, frame.width, frame.height);
+
+        // Draw the actual frame data instead of current canvas
+        const layer = this.layers[this.currentLayer];
+        if (layer && layer.frames[frameIndex]) {
+          // Scale the frame data to fit the preview size
+          const frameData = layer.frames[frameIndex].data;
+          const tempCanvas = document.createElement('canvas');
+          tempCanvas.width = this.canvas.width;
+          tempCanvas.height = this.canvas.height;
+          const tempCtx = tempCanvas.getContext('2d');
+          // Ensure proper color representation
+          tempCtx.putImageData(frameData, 0, 0);
+
+          ctx.drawImage(tempCanvas, 0, 0, frame.width, frame.height);
+        }
       }
 
       togglePlay() {
@@ -910,33 +1321,372 @@
       }
 
       exportGif() {
-        const gif = new GIF({
-          workers: 2,
-          quality: 10,
-          width: this.canvas.width,
-          height: this.canvas.height
-        });
+        try {
+          const frames = this.layers[this.currentLayer].frames;
+          console.log(`Exporting GIF for layer ${this.currentLayer} with ${frames.length} frames`);
 
-        const frames = this.layers[this.currentLayer].frames;
-        frames.forEach(frame => {
+          if (frames.length === 0) {
+            alert('No frames to export!');
+            return;
+          }
+
+          // Export current frame as PNG with proper color preservation
           const tempCanvas = document.createElement('canvas');
           tempCanvas.width = this.canvas.width;
           tempCanvas.height = this.canvas.height;
           const tempCtx = tempCanvas.getContext('2d');
-          tempCtx.putImageData(frame.data, 0, 0);
-          gif.addFrame(tempCanvas, { delay: frame.duration });
-        });
 
-        gif.on('finished', blob => {
-          const url = URL.createObjectURL(blob);
-          const a = document.createElement('a');
-          a.href = url;
-          a.download = 'animation.gif';
-          a.click();
+          // Draw the current frame with proper color data and white background
+          const currentFrameData = frames[this.currentFrame].data;
+
+          // Fill with white background first
+          tempCtx.fillStyle = '#FFFFFF';
+          tempCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
+
+          // Then draw the frame data
+          const imageData = new ImageData(
+            new Uint8ClampedArray(currentFrameData.data),
+            currentFrameData.width,
+            currentFrameData.height
+          );
+          tempCtx.putImageData(imageData, 0, 0);
+
+          // Download as PNG with maximum quality
+          tempCanvas.toBlob(blob => {
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `frame_${this.currentFrame + 1}.png`;
+            a.click();
+            URL.revokeObjectURL(url);
+          }, 'image/png', 1.0);
+
+        } catch (error) {
+          console.error('PNG export failed:', error);
+          alert('Export failed. Check console for details.');
+        }
+      }
+
+      countNonWhitePixels(imageData) {
+        let count = 0;
+        for (let i = 0; i < imageData.data.length; i += 4) {
+          if (imageData.data[i] !== 255 || imageData.data[i+1] !== 255 || imageData.data[i+2] !== 255) {
+            count++;
+          }
+        }
+        return count;
+      }
+
+      async initFFmpeg() {
+        try {
+          const { createFFmpeg } = FFmpeg;
+          const { fetchFile, toBlobURL } = FFmpegUtil;
+
+          this.ffmpeg = createFFmpeg({ log: true });
+          this.ffmpeg.on('log', ({ message }) => {
+            console.log(message);
+          });
+
+          // Load FFmpeg from CDN
+          await this.ffmpeg.load({
+            coreURL: await toBlobURL('https://unpkg.com/@ffmpeg/core@0.12.6/dist/ffmpeg-core.js', 'text/javascript'),
+            wasmURL: await toBlobURL('https://unpkg.com/@ffmpeg/core@0.12.6/dist/ffmpeg-core.wasm', 'application/wasm'),
+            workerURL: await toBlobURL('https://unpkg.com/@ffmpeg/core@0.12.6/dist/ffmpeg-core.worker.js', 'text/javascript'),
+          });
+
+          this.isFFmpegLoaded = true;
+          console.log('FFmpeg loaded successfully');
+        } catch (error) {
+          console.error('Failed to load FFmpeg:', error);
+          this.isFFmpegLoaded = false;
+        }
+      }
+
+      async exportVideo() {
+        try {
+          // Show loading message
+          const originalText = document.getElementById('exportVideo').textContent;
+          document.getElementById('exportVideo').textContent = '⏳ Exporting...';
+          document.getElementById('exportVideo').disabled = true;
+
+          const frames = this.layers[this.currentLayer].frames;
+
+          // Try WebM export first (simpler and more reliable)
+          await this.exportWebM(frames);
+
+        } catch (error) {
+          console.error('All video export methods failed:', error);
+          alert('Video export failed. Try using the ZIP export for frames instead.');
+        } finally {
+          // Reset button
+          document.getElementById('exportVideo').textContent = '🎥 Export Video';
+          document.getElementById('exportVideo').disabled = false;
+        }
+      }
+
+      async exportWebM(frames) {
+        try {
+          // Try MediaRecorder API first (most reliable)
+          if (this.canvas.captureStream) {
+            const exporter = new VideoExporter();
+            const videoBlob = await exporter.exportAnimation(frames, this.fps, this.canvas);
+
+            // Download the video
+            const url = URL.createObjectURL(videoBlob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'animation.webm';
+            a.click();
+
+            // Set up video playback
+            const video = this.createVideoPlayback();
+            video.src = url;
+            document.getElementById('videoPlayback').style.display = 'inline-block';
+
+            // Clean up
+            setTimeout(() => {
+              URL.revokeObjectURL(url);
+            }, 1000);
+
+            return; // Success, don't try other methods
+          }
+
+          // Fallback to WebM writer if MediaRecorder not available
+          if (typeof WebMWriter !== 'undefined') {
+            // Create WebM writer
+            const writer = new WebMWriter({
+              quality: 0.95,
+              frameRate: this.fps
+            });
+
+            // Add each frame
+            for (let i = 0; i < frames.length; i++) {
+              const tempCanvas = document.createElement('canvas');
+              tempCanvas.width = this.canvas.width;
+              tempCanvas.height = this.canvas.height;
+              const tempCtx = tempCanvas.getContext('2d');
+              tempCtx.putImageData(frames[i].data, 0, 0);
+
+              // Add frame to WebM
+              writer.addFrame(tempCanvas);
+            }
+
+            // Complete the WebM file
+            const webmBlob = await writer.complete();
+
+            // Download the WebM file
+            const url = URL.createObjectURL(webmBlob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'animation.webm';
+            a.click();
+
+            // Set up video playback
+            const video = this.createVideoPlayback();
+            video.src = url;
+            document.getElementById('videoPlayback').style.display = 'inline-block';
+
+            // Clean up
+            setTimeout(() => {
+              URL.revokeObjectURL(url);
+            }, 1000);
+          } else {
+            throw new Error('No video export method available');
+          }
+
+        } catch (error) {
+          console.error('All video export methods failed:', error);
+          throw error;
+        }
+      }
+
+      async exportVideoFFmpeg(frames) {
+        if (!this.isFFmpegLoaded || !this.ffmpeg) {
+          throw new Error('FFmpeg not available');
+        }
+
+        // Create sequence of images
+        for (let i = 0; i < frames.length; i++) {
+          const tempCanvas = document.createElement('canvas');
+          tempCanvas.width = this.canvas.width;
+          tempCanvas.height = this.canvas.height;
+          const tempCtx = tempCanvas.getContext('2d');
+          tempCtx.putImageData(frames[i].data, 0, 0);
+
+          // Convert canvas to blob
+          const blob = await new Promise(resolve => tempCanvas.toBlob(resolve, 'image/png'));
+          const arrayBuffer = await blob.arrayBuffer();
+
+          // Write to FFmpeg filesystem
+          await this.ffmpeg.FS('writeFile', `frame_${i.toString().padStart(4, '0')}.png`, new Uint8Array(arrayBuffer));
+        }
+
+        // Run FFmpeg command to create video
+        await this.ffmpeg.run(
+          '-framerate', this.fps.toString(),
+          '-i', 'frame_%04d.png',
+          '-c:v', 'libx264',
+          '-pix_fmt', 'yuv420p',
+          'output.mp4'
+        );
+
+        // Read the output file
+        const data = this.ffmpeg.FS('readFile', 'output.mp4');
+
+        // Create download link and set up video playback
+        const blob = new Blob([data.buffer], { type: 'video/mp4' });
+        const url = URL.createObjectURL(blob);
+
+        // Set video source for playback
+        const video = this.createVideoPlayback();
+        video.src = url;
+        document.getElementById('videoPlayback').style.display = 'inline-block';
+
+        // Create download link
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'animation.mp4';
+        a.click();
+
+        // Clean up after a delay to allow download
+        setTimeout(() => {
           URL.revokeObjectURL(url);
-        });
+        }, 1000);
 
-        gif.render();
+        // Clean up
+        for (let i = 0; i < frames.length; i++) {
+          this.ffmpeg.FS('unlink', `frame_${i.toString().padStart(4, '0')}.png`);
+        }
+        this.ffmpeg.FS('unlink', 'output.mp4');
+      }
+
+      async exportFrames() {
+        try {
+          // Show loading message
+          const originalText = document.getElementById('exportFrames').textContent;
+          document.getElementById('exportFrames').textContent = '⏳ Creating ZIP...';
+          document.getElementById('exportFrames').disabled = true;
+
+          const zip = new JSZip();
+          const frames = this.layers[this.currentLayer].frames;
+
+          // Add each frame to the ZIP
+          for (let i = 0; i < frames.length; i++) {
+            const tempCanvas = document.createElement('canvas');
+            tempCanvas.width = this.canvas.width;
+            tempCanvas.height = this.canvas.height;
+            const tempCtx = tempCanvas.getContext('2d');
+
+            // Fill with white background first, then draw frame data
+            tempCtx.fillStyle = '#FFFFFF';
+            tempCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
+
+            // Draw frame data with proper color preservation
+            const frameImageData = new ImageData(
+              new Uint8ClampedArray(frames[i].data.data),
+              frames[i].data.width,
+              frames[i].data.height
+            );
+            tempCtx.putImageData(frameImageData, 0, 0);
+
+            // Convert canvas to blob with maximum quality
+            const blob = await new Promise(resolve =>
+              tempCanvas.toBlob(resolve, 'image/png', 1.0)
+            );
+            zip.file(`frame_${(i + 1).toString().padStart(4, '0')}.png`, blob);
+          }
+
+          // Generate ZIP file
+          const zipBlob = await zip.generateAsync({ type: 'blob' });
+
+          // Download the ZIP
+          saveAs(zipBlob, 'animation_frames.zip');
+
+        } catch (error) {
+          console.error('Frame export failed:', error);
+          alert('Frame export failed. Check console for details.');
+        } finally {
+          // Reset button
+          document.getElementById('exportFrames').textContent = '📦 Export Frames (ZIP)';
+          document.getElementById('exportFrames').disabled = false;
+        }
+      }
+
+      createVideoPlayback() {
+        // Create video element if it doesn't exist
+        if (!this.videoElement) {
+          this.videoElement = document.createElement('video');
+          this.videoElement.style.cssText = `
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            max-width: 80vw;
+            max-height: 80vh;
+            background: #000;
+            border-radius: 8px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.5);
+            display: none;
+            z-index: 2000;
+          `;
+          this.videoElement.controls = true;
+
+          // Add close button
+          const closeBtn = document.createElement('button');
+          closeBtn.textContent = '✕';
+          closeBtn.style.cssText = `
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: rgba(0,0,0,0.7);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            cursor: pointer;
+            font-size: 16px;
+            z-index: 2001;
+          `;
+          closeBtn.onclick = () => {
+            this.videoElement.style.display = 'none';
+            this.videoElement.pause();
+          };
+
+          // Add overlay background
+          const overlay = document.createElement('div');
+          overlay.style.cssText = `
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0,0,0,0.8);
+            z-index: 1999;
+            display: none;
+            cursor: pointer;
+          `;
+          overlay.onclick = () => {
+            this.videoElement.style.display = 'none';
+            this.videoElement.pause();
+          };
+
+          document.body.appendChild(overlay);
+          document.body.appendChild(this.videoElement);
+          document.body.appendChild(closeBtn);
+        }
+
+        return this.videoElement;
+      }
+
+      showVideoPlayback() {
+        const video = this.createVideoPlayback();
+        if (video.src) {
+          video.style.display = 'block';
+          video.play();
+        } else {
+          alert('No video available. Export a video first.');
+        }
       }
 
       handleImport(files) {
@@ -956,11 +1706,28 @@
         });
       }
 
+      updateUndoButton() {
+        const layer = this.layers[this.currentLayer];
+        const frame = layer.frames[this.currentFrame];
+        const undoBtn = document.getElementById('undo');
+        console.log('Updating undo button for layer:', this.currentLayer, 'frame:', this.currentFrame, 'history length:', frame.history.length, 'enabled:', frame.history.length > 0);
+        if (frame.history.length === 0) {
+          undoBtn.style.opacity = '0.5';
+          undoBtn.style.cursor = 'not-allowed';
+          undoBtn.style.pointerEvents = 'none';
+        } else {
+          undoBtn.style.opacity = '1';
+          undoBtn.style.cursor = 'pointer';
+          undoBtn.style.pointerEvents = 'auto';
+        }
+      }
+
       updateUI() {
         this.updateLayerList();
         this.updateFrames();
         this.updateTimeline();
-        document.getElementById('playPause').textContent = 
+        this.updateUndoButton();
+        document.getElementById('playPause').textContent =
           this.isPlaying ? '⏹️ Stop' : '▶️ Play';
       }
 
@@ -973,7 +1740,7 @@
           div.className = `layer-item ${i === this.currentLayer ? 'active' : ''}`;
           div.innerHTML = `
             <div class="layer-controls">
-              <button class="layer-visibility ${layer.visible ? 'visible' : ''}" onclick="editor.toggleLayerVisibility(${i})">
+              <button class="layer-visibility ${layer.visible ? 'visible' : ''}" onclick="editor.toggleLayerVisibility(${i})" ontouchstart="event.preventDefault(); editor.toggleLayerVisibility(${i})">
                 👁️
               </button>
               <input
@@ -983,12 +1750,21 @@
                 min="0"
                 max="100"
                 oninput="editor.setLayerOpacity(${i}, this.value)"
+                ontouchstart="event.preventDefault()"
+                ontouchmove="event.preventDefault()"
               >
               <span>${layer.name}</span>
             </div>
           `;
           div.onclick = (e) => {
-            if (!e.target.classList.contains('layer-visibility') && 
+            if (!e.target.classList.contains('layer-visibility') &&
+                !e.target.classList.contains('layer-opacity')) {
+              this.setCurrentLayer(i);
+            }
+          };
+          div.ontouchstart = (e) => {
+            e.preventDefault();
+            if (!e.target.classList.contains('layer-visibility') &&
                 !e.target.classList.contains('layer-opacity')) {
               this.setCurrentLayer(i);
             }
@@ -1005,6 +1781,7 @@
 
       setLayerOpacity(index, value) {
         this.layers[index].opacity = value / 100;
+        console.log(`Layer ${index} opacity updated to ${this.layers[index].opacity}`);
         this.loadFrame(this.currentFrame);
       }
 
@@ -1022,6 +1799,10 @@
             <div class="frame-duration">${Math.round(frame.duration)}ms</div>
           `;
           div.onclick = () => this.loadFrame(i);
+          div.ontouchstart = (e) => {
+            e.preventDefault();
+            this.loadFrame(i);
+          };
           container.appendChild(div);
           this.updateFramePreview(i);
         });
@@ -1030,23 +1811,40 @@
       updateTimeline() {
         const progress = document.querySelector('.timeline-progress');
         const handle = document.querySelector('.timeline-handle');
-        const percentage = (this.currentFrame / (this.layers[this.currentLayer].frames.length - 1)) * 100;
-        
+        const frameCount = this.layers[this.currentLayer].frames.length;
+        const percentage = frameCount > 1 ? (this.currentFrame / (frameCount - 1)) * 100 : 0;
+
         progress.style.width = `${percentage}%`;
         handle.style.left = `${percentage}%`;
       }
 
       setCurrentLayer(index) {
+        // Adjust currentFrame to be valid for the new layer
+        this.currentFrame = Math.min(this.currentFrame, this.layers[index].frames.length - 1);
         this.currentLayer = index;
         this.updateUI();
       }
 
       initEvents() {
+        console.log('initEvents started');
         // Canvas events
         this.canvas.addEventListener('mousedown', e => this.startDrawing(e));
         this.canvas.addEventListener('mousemove', e => this.draw(e));
         this.canvas.addEventListener('mouseup', () => this.stopDrawing());
         this.canvas.addEventListener('mouseout', () => this.stopDrawing());
+        // Touch events for canvas
+        this.canvas.addEventListener('touchstart', e => {
+          e.preventDefault();
+          this.startDrawing(e);
+        });
+        this.canvas.addEventListener('touchmove', e => {
+          e.preventDefault();
+          this.draw(e);
+        });
+        this.canvas.addEventListener('touchend', e => {
+          e.preventDefault();
+          this.stopDrawing();
+        });
 
         // Tool settings
         document.getElementById('colorPicker').addEventListener('input', e => {
@@ -1057,16 +1855,21 @@
           this.brushSize = e.target.value;
           document.getElementById('sizeValue').textContent = `${this.brushSize}px`;
         });
+        document.getElementById('sizeSlider').addEventListener('touchstart', e => e.preventDefault());
+        document.getElementById('sizeSlider').addEventListener('touchmove', e => e.preventDefault());
 
         document.getElementById('smoothing').addEventListener('input', e => {
           this.smoothing = parseFloat(e.target.value);
         });
+        document.getElementById('smoothing').addEventListener('touchstart', e => e.preventDefault());
+        document.getElementById('smoothing').addEventListener('touchmove', e => e.preventDefault());
 
         document.getElementById('pressureEnabled').addEventListener('change', e => {
           this.pressureEnabled = e.target.checked;
         });
 
         document.getElementById('onionSkin').addEventListener('change', e => {
+          console.log('Onion Skin toggled:', e.target.checked);
           this.onionSkin = e.target.checked;
           this.loadFrame(this.currentFrame);
         });
@@ -1074,12 +1877,28 @@
         document.getElementById('fps').addEventListener('input', e => {
           this.fps = parseInt(e.target.value);
         });
+        document.getElementById('fps').addEventListener('touchstart', e => e.preventDefault());
+        document.getElementById('fps').addEventListener('touchmove', e => e.preventDefault());
 
         // Timeline scrubbing
         const scrubber = document.querySelector('.timeline-scrubber');
         scrubber.addEventListener('mousedown', e => {
           const rect = scrubber.getBoundingClientRect();
           const percentage = (e.clientX - rect.left) / rect.width;
+          const frameIndex = Math.floor(percentage * (this.layers[this.currentLayer].frames.length - 1));
+          this.loadFrame(frameIndex);
+        });
+        scrubber.addEventListener('touchstart', e => {
+          e.preventDefault();
+          const rect = scrubber.getBoundingClientRect();
+          const percentage = (e.touches[0].clientX - rect.left) / rect.width;
+          const frameIndex = Math.floor(percentage * (this.layers[this.currentLayer].frames.length - 1));
+          this.loadFrame(frameIndex);
+        });
+        scrubber.addEventListener('touchmove', e => {
+          e.preventDefault();
+          const rect = scrubber.getBoundingClientRect();
+          const percentage = (e.touches[0].clientX - rect.left) / rect.width;
           const frameIndex = Math.floor(percentage * (this.layers[this.currentLayer].frames.length - 1));
           this.loadFrame(frameIndex);
         });
@@ -1091,10 +1910,91 @@
         document.getElementById('deleteFrame').onclick = () => this.deleteFrame();
         document.getElementById('playPause').onclick = () => this.togglePlay();
         document.getElementById('exportGif').onclick = () => this.exportGif();
+        document.getElementById('exportVideo').onclick = () => this.exportVideo();
+        document.getElementById('exportFrames').onclick = () => this.exportFrames();
+        document.getElementById('videoPlayback').onclick = () => this.showVideoPlayback();
+        // Touch handlers for buttons
+        document.getElementById('addLayer').addEventListener('touchstart', e => {
+          e.preventDefault();
+          this.addLayer();
+        });
+        document.getElementById('addFrame').addEventListener('touchstart', e => {
+          e.preventDefault();
+          this.addFrame();
+        });
+        document.getElementById('duplicateFrame').addEventListener('touchstart', e => {
+          e.preventDefault();
+          this.duplicateFrame();
+        });
+        document.getElementById('deleteFrame').addEventListener('touchstart', e => {
+          e.preventDefault();
+          this.deleteFrame();
+        });
+        document.getElementById('playPause').addEventListener('touchstart', e => {
+          e.preventDefault();
+          this.togglePlay();
+        });
+        document.getElementById('exportGif').addEventListener('touchstart', e => {
+          e.preventDefault();
+          this.exportGif();
+        });
+        document.getElementById('exportVideo').addEventListener('touchstart', e => {
+          e.preventDefault();
+          this.exportVideo();
+        });
+        document.getElementById('exportFrames').addEventListener('touchstart', e => {
+          e.preventDefault();
+          this.exportFrames();
+        });
+        document.getElementById('videoPlayback').addEventListener('touchstart', e => {
+          e.preventDefault();
+          this.showVideoPlayback();
+        });
 
         // Copy/Paste
-        document.getElementById('copy').onclick = () => this.copy();
-        document.getElementById('paste').onclick = () => this.paste();
+        document.getElementById('copy').onclick = () => {
+          console.log('Copy button clicked, selection:', this.selection);
+          if (this.selection) {
+            this.copy();
+            document.getElementById('paste').disabled = false;
+            alert('Selection copied! Now click Paste to place it.');
+          } else {
+            alert('Please select an area first using the Select tool.');
+          }
+        };
+        document.getElementById('paste').onclick = () => {
+          console.log('Paste button clicked, clipboard:', this.clipboard);
+          if (this.clipboard) {
+            this.paste();
+            // Clear clipboard after paste
+            this.clipboard = null;
+            document.getElementById('paste').disabled = true;
+            this.selectionCtx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+            this.selection = null;
+          } else {
+            alert('Nothing to paste. Copy a selection first.');
+          }
+        };
+        document.getElementById('copy').addEventListener('touchstart', e => {
+          e.preventDefault();
+          console.log('Copy button touchstart triggered');
+          document.getElementById('copy').click();
+        });
+        document.getElementById('paste').addEventListener('touchstart', e => {
+          e.preventDefault();
+          console.log('Paste button touchstart triggered');
+          document.getElementById('paste').click();
+        });
+
+        document.getElementById('undo').addEventListener('click', () => {
+          console.log('Undo button clicked');
+          this.undo();
+        });
+        document.getElementById('undo').addEventListener('touchstart', e => {
+          e.preventDefault();
+          console.log('Undo button touchstart triggered');
+          this.undo();
+        });
 
         // Import
         document.getElementById('importImages').addEventListener('change', e => {
@@ -1104,15 +2004,20 @@
         // Tool selection
         document.querySelectorAll('.tool-button').forEach(button => {
           button.addEventListener('click', e => {
-            document.querySelectorAll('.tool-button').forEach(b => 
+            document.querySelectorAll('.tool-button').forEach(b =>
               b.classList.remove('active')
             );
             e.target.classList.add('active');
             this.currentTool = e.target.dataset.tool;
             
             // Show/hide brush settings
-            document.querySelector('.brush-settings').style.display = 
+            document.querySelector('.brush-settings').style.display =
               this.currentTool === 'brush' ? 'block' : 'none';
+          });
+          button.addEventListener('touchstart', e => {
+            e.preventDefault();
+            console.log('Tool button touchstart: tool:', e.target.dataset.tool);
+            button.click();
           });
         });
 
@@ -1137,6 +2042,16 @@
           dropzone.classList.remove('active');
           this.handleImport(e.dataTransfer.files);
         });
+
+        // Undo shortcut
+        document.addEventListener('keydown', e => {
+          if (e.ctrlKey && e.key === 'z') {
+            console.log('Ctrl+Z pressed');
+            e.preventDefault();
+            this.undo();
+          }
+        });
+        console.log('initEvents completed');
       }
     }
 
@@ -1149,5 +2064,4 @@
   </script>
 </body>
 </html>
-
 

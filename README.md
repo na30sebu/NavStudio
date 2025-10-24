@@ -1,4 +1,4 @@
- NavStudio
+NavStudio created by Navar Seery-Bunton
 
-Free To Use Animation Program made by anyone who'd like to help.
-Lots of bugs still - Not useable yet, just what Phind has given me so far.
+Free To Use Animation Program made by anyone.
+Lots of bugs still - It's getting there!
